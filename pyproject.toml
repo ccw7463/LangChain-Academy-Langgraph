@@ -10,6 +10,8 @@ packages = [
     { include = "models", from = "." },
     { include = "config", from = "." },
     { include = "notebooks", from = "." },
+    { include = "public", from = "." },
+    { include = "utils", from = "." }
 ]
 
 [tool.poetry.dependencies]
