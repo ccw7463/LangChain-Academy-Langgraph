@@ -11,7 +11,8 @@ packages = [
     { include = "config", from = "." },
     { include = "notebooks", from = "." },
     { include = "public", from = "." },
-    { include = "utils", from = "." }
+    { include = "utils", from = "." },
+    { include = "modules", from = "." }
 ]
 
 [tool.poetry.dependencies]
