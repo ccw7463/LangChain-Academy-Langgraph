@@ -7,6 +7,7 @@ RED = "\033[91m"         # Bright Red
 BLUE = "\033[94m"        # Bright Blue
 GREEN = "\033[92m"        # Bright Green
 YELLOW = "\033[93m"       # Bright Yellow
+PINK = "\033[95m"         # Bright Pink
 
 def set_env():
     load_dotenv()
