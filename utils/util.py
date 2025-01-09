@@ -16,19 +16,25 @@ def set_env():
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
     os.environ["LANGCHAIN_PROJECT"] = "langchain-academy"
 
-def trace_function(enable_print=True):
+def trace_function(enable_print=True, only_node=False):
     def wrapper(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapped(*args, **kwargs):
             if enable_print:
-                print(f"\n{GREEN}🚀 Passing Through [{func.__name__}] ..{RESET}")
-                print(f"\n{RED}#### [Input State]{RESET}")
-                print(f"  args: {args}")
-                print(f"  kwargs: {kwargs}")
-            result = func(*args, **kwargs)
+                if only_node:
+                    print(f"\n{GREEN}🚀 Passing Through [{func.__name__}] ..{RESET}")
+                else:
+                    print(f"\n{GREEN}🚀 Passing Through [{func.__name__}] ..{RESET}")
+                    print(f"\n{RED}#### [Input State]{RESET}")
+                    print(f"  args: {args}")
+                    print(f"  kwargs: {kwargs}")
+            result = func(*args, **kwargs)  # 원본 함수 호출
             if enable_print:
-                print(f"\n{BLUE}#### [Output State]{RESET}")
-                print(f"  result: {result}")
+                if only_node:
+                    pass
+                else:
+                    print(f"\n{BLUE}#### [Output State]{RESET}")
+                    print(f"  result: {result}")
             return result
-        return wrapper
+        return wrapped
     return wrapper

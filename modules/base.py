@@ -19,7 +19,5 @@ from langgraph.store.memory import InMemoryStore
 from langgraph.store.base import BaseStore
 from pydantic import BaseModel, field_validator, ValidationError
 from utils.util import *
-ShortTermMemory = MemorySaver()
-LongTermMemory = InMemoryStore()
 set_env()
 llm = ChatOpenAI(model="gpt-4o")
