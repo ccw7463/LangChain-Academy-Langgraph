@@ -59,12 +59,12 @@ prompt_config.create_memory_prompt ="""당신은 사용자의 응답을 개인�
 ...
 """
 
-def trace_function(enable_print=True, only_node=False):
+def trace_function(enable_print=True, only_func_name=False):
     def wrapper(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
             if enable_print:
-                if only_node:
+                if only_func_name:
                     print(f"    - Passing Through [{func.__name__}] ..{RESET}")
                 else:
                     print(f"    - Passing Through [{func.__name__}] ..{RESET}")
@@ -73,7 +73,7 @@ def trace_function(enable_print=True, only_node=False):
                     print(f"  kwargs: {kwargs}")
             result = func(*args, **kwargs)  # 원본 함수 호출
             if enable_print:
-                if only_node:
+                if only_func_name:
                     pass
                 else:
                     print(f"\n{BLUE}#### [Output State]{RESET}")
@@ -115,11 +115,11 @@ class ToolConversation:
         builder.add_edge("tools", "_node_assistant")
         self.graph = builder.compile()
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _node_assistant(self, state:MessagesState):
         return {"messages": [self.llm_with_tools.invoke([SystemMessage(content=self.system_prompt)] + state["messages"])]}
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _tool_multiply(self,
                        a: int, 
                        b: int) -> int:
@@ -131,7 +131,7 @@ class ToolConversation:
         """
         return a * b
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _tool_add(self,
                   a: int, 
                   b: int) -> int:
@@ -143,7 +143,7 @@ class ToolConversation:
         """
         return a + b
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _tool_divide(self,
                      a: int, 
                      b: int) -> float:
@@ -193,7 +193,7 @@ class ConversationTest:
         self.graph = builder.compile(checkpointer=self.ShortTermMemory,
                                      store=self.LongTermMemory)
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _node_answer(self, 
                     state: MessagesState, 
                     config: RunnableConfig,
@@ -212,7 +212,7 @@ class ConversationTest:
         response = self.llm.invoke(prompt)
         return {"messages": response}
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _node_write_memory(self,
                           state: MessagesState, 
                           config: RunnableConfig, 
@@ -234,7 +234,7 @@ class ConversationTest:
                   key=key, 
                   value={"memory":response.content})
     
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _node_optimize_memory(self,
                               state: MessagesState):
         """

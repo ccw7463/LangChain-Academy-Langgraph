@@ -25,12 +25,12 @@ GREEN = "\033[92m"        # Bright Green
 YELLOW = "\033[93m"       # Bright Yellow
 PINK = "\033[95m"         # Bright Pink
 
-def trace_function(enable_print=True, only_node=False):
+def trace_function(enable_print=True, only_func_name=False):
     def wrapper(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
             if enable_print:
-                if only_node:
+                if only_func_name:
                     print(f"\n... Passing Through [{func.__name__}] ...")
                 else:
                     print(f"\n... Passing Through [{func.__name__}] ...")
@@ -39,7 +39,7 @@ def trace_function(enable_print=True, only_node=False):
                     print(f"  kwargs: {kwargs}")
             result = func(*args, **kwargs)  # 원본 함수 호출
             if enable_print:
-                if only_node:
+                if only_func_name:
                     pass
                 else:
                     print(f"\n{BLUE}#### [Output State]{RESET}")
@@ -81,11 +81,11 @@ class ToolConversation:
         builder.add_edge("tools", "_node_assistant")
         self.graph = builder.compile()
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _node_assistant(self, state:MessagesState):
         return {"messages": [self.llm_with_tools.invoke([SystemMessage(content=self.system_prompt)] + state["messages"])]}
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _tool_add(self,
                   a: int, 
                   b: int) -> int:
@@ -130,7 +130,7 @@ class ConversationTest:
         builder.add_edge("_node_answer", END)
         self.graph = builder.compile(checkpointer=self.ShortTermMemory)
 
-    @trace_function(enable_print=True, only_node=True)
+    @trace_function(enable_print=True, only_func_name=True)
     def _node_answer(self, 
                     state: MessagesState):
         """
