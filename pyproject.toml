@@ -7,8 +7,6 @@ readme = "README.md"
 
 # 포함할 패키지 지정
 packages = [
-    { include = "models", from = "." },
-    { include = "config", from = "." },
     { include = "notebooks", from = "." },
     { include = "public", from = "." },
     { include = "utils", from = "." },

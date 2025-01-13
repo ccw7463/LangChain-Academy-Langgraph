@@ -1,29 +1,34 @@
 
 # Langchain Academy - Langgraph
 
+## Getting Started
 
-### This is repo for Studying Langchain
 
-You can install libraries with poetry
+### Installation
+_Using `poetry` for Python project dependency management and package distribution._
 
+1. Download the poetry tool
 ```bash
-step 1. curl -sSL https://install.python-poetry.org | python3 -
-step 2. export PATH="$HOME/.local/bin:$PATH"
-step 3. poetry --version
+curl -sSL https://install.python-poetry.org | python3.11 -
 ```
 
-if step 3 is done, you can just use this command
+2. Add poetry to the PATH environment variable.
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+3. Verify that poetry is installed and recognized correctly.
+```bash
+poetry --version
+```
+
+4. Configure a virtual environment for each project.
+```bash
+poetry config virtualenvs.in-project true
+```
+
+5. Install dependencies
 
 ```bash
 poetry install
 ```
-
-### Repo Structure
-- config : configuration for the project
-- models : models for the project (in case using huggingface model not GPT)
-- notebooks/LangGraph/Module_5_Long-Term_Memory : Studying LangGraph (Short-Term Memory, Long-Term Memory)
-
-### notebooks/LangGraph/Module_5_Long-Term_Memory
-- 02_memory_store.ipynb : Studying Memory Store
-
-    ![short_term_long_term.png](public/short_term_long_term.png)
