@@ -1,10 +1,6 @@
 
 # Langchain Academy - Langgraph
 
-<img src="public/langgraph_logo.png" width="270" height="250">
-
-
-
 
 ### This is repo for Studying Langchain
 
