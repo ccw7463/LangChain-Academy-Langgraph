@@ -1,6 +1,9 @@
 
 # Langchain Academy - Langgraph
 
+<img src="./public/langgraph.png" alt="made by DALL-E" width="600">
+
+
 ## About The Project
 
 This project provides an opportunity to implement and explore features based on Langgraph. By experimenting with the code, you can develop functionalities tailored to your needs and better understand the capabilities of Langgraph.
