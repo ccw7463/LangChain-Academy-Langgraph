@@ -1,92 +1,10 @@
-import os
-import uuid
-import time
-from dotenv import load_dotenv
-from functools import wraps
-import argparse
-from ml_collections import ConfigDict
-from langgraph.graph import StateGraph, START, END, MessagesState
-from langgraph.prebuilt import ToolNode, tools_condition
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.store.memory import InMemoryStore
-from langgraph.store.base import BaseStore
-from langchain_openai import ChatOpenAI
-from langchain_huggingface import HuggingFaceEndpoint
-from langchain_huggingface import ChatHuggingFace
-from langchain_core.runnables import RunnableConfig
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage, RemoveMessage
-from dotenv import load_dotenv
-load_dotenv()
-
-RESET = "\033[0m"        # Reset to default
-RED = "\033[91m"         # Bright Red
-BLUE = "\033[94m"        # Bright Blue
-GREEN = "\033[92m"        # Bright Green
-YELLOW = "\033[93m"       # Bright Yellow
-PINK = "\033[95m"         # Bright Pink
-
-prompt_config = ConfigDict()
-prompt_config.answer_prompt = """당신은 [사용자 정보]를 통해 답변하는 유용한 챗봇입니다.
-[사용자 정보]:
-{memory}"""
-prompt_config.create_memory_prompt ="""당신은 사용자의 응답을 개인화하기 위해 사용자에 대한 정보를 수집하고 있습니다.
-
-[현재 사용자 정보]:
-{memory}
-
-지침:
-1. 전체 채팅 기록을 주의 깊게 검토하세요.
-2. 사용자에 대한 새로운 정보를 식별하세요. 예를 들면:
-   - 개인 정보 (이름, 위치 등)
-   - 선호 사항 (좋아하는 것, 싫어하는 것 등)
-   - 관심사와 취미
-   - 과거 경험
-   - 목표나 미래 계획   
-3. 새로운 정보를 기존 메모리와 병합하세요.
-4. 메모리는 명확한 불릿 리스트 형식으로 작성하세요.
-5. 새로운 정보가 기존 메모리와 충돌할 경우, 가장 최근 정보를 유지하세요.
-6. 만약 새로운 정보가 없다면 [현재 사용자 정보] 부분의 내용을 그대로 출력하세요.
-7. 기존 정보를 유지할경우 [현재 사용자 정보] 부분의 내용을 그대로 출력하세요.
-
-기억하세요: 사용자가 직접적으로 언급한 사실적인 정보만 포함해야 합니다. 추측이나 추론을 하지 마세요.
-
-전체 채팅 기록을 바탕으로 사용자 정보를 업데이트하세요:
-
-출력 양식은 반드시 아래를 따르세요.
-
-- 정보 종류 : 정보 내용
-- 정보 종류 : 정보 내용
-...
-"""
-
-def trace_function(enable_print=True, only_func_name=False):
-    def wrapper(func):
-        @wraps(func)
-        def wrapped(*args, **kwargs):
-            if enable_print:
-                if only_func_name:
-                    print(f"    - Passing Through [{func.__name__}] ..{RESET}")
-                else:
-                    print(f"    - Passing Through [{func.__name__}] ..{RESET}")
-                    print(f"{RED}#### [Input State]{RESET}")
-                    print(f"  args: {args}")
-                    print(f"  kwargs: {kwargs}")
-            result = func(*args, **kwargs)  # 원본 함수 호출
-            if enable_print:
-                if only_func_name:
-                    pass
-                else:
-                    print(f"\n{BLUE}#### [Output State]{RESET}")
-                    print(f"  result: {result}")
-            return result
-        return wrapped
-    return wrapper
+from modules.base import *
 
 class ToolConversation:
-    def __init__(self, llm):
+    def __init__(self):
         self.system_prompt = "You are a helpful assistant tasked with performing arithmetic on a set of inputs."
         self.tools = [self._tool_divide, self._tool_add, self._tool_multiply]
-        self.llm = llm
+        self.llm = ChatOpenAI(model="gpt-4o")
         self.llm_with_tools = self.llm.bind_tools(self.tools, parallel_tool_calls=False)
         self._build_graph()
 
@@ -115,11 +33,11 @@ class ToolConversation:
         builder.add_edge("tools", "_node_assistant")
         self.graph = builder.compile()
 
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _node_assistant(self, state:MessagesState):
         return {"messages": [self.llm_with_tools.invoke([SystemMessage(content=self.system_prompt)] + state["messages"])]}
 
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _tool_multiply(self,
                        a: int, 
                        b: int) -> int:
@@ -131,7 +49,7 @@ class ToolConversation:
         """
         return a * b
 
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _tool_add(self,
                   a: int, 
                   b: int) -> int:
@@ -143,7 +61,7 @@ class ToolConversation:
         """
         return a + b
 
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _tool_divide(self,
                      a: int, 
                      b: int) -> float:
@@ -154,14 +72,44 @@ class ToolConversation:
             b: second int
         """
         return a / b
-    
 class ConversationTest:
-    def __init__(self, llm):
+    def __init__(self):
         self.LIMIT_LENGTH = 6
         self.ShortTermMemory = MemorySaver()
         self.LongTermMemory = InMemoryStore()
         self.system_prompt = "당신은 사용자 요청에 답변하는 유용한 챗봇입니다."
-        self.llm = llm
+        self.answer_prompt = """당신은 [사용자 정보]를 통해 답변하는 유용한 챗봇입니다.
+[사용자 정보]:
+{memory}"""
+        self.create_memory_prompt ="""당신은 사용자의 응답을 개인화하기 위해 사용자에 대한 정보를 수집하고 있습니다.
+[현재 사용자 정보]:
+{memory}
+
+지침:
+1. 아래의 채팅 기록을 주의 깊게 검토하세요.
+2. 사용자에 대한 새로운 정보를 식별하세요. 예를 들면:
+- 개인 정보 (이름, 위치 등)
+- 선호 사항 (좋아하는 것, 싫어하는 것 등)
+- 관심사와 취미
+- 과거 경험
+- 목표나 미래 계획   
+3. 새로운 정보를 기존 메모리와 병합하세요.
+4. 메모리는 명확한 불릿 리스트 형식으로 작성하세요.
+5. 새로운 정보가 기존 메모리와 충돌할 경우, 가장 최근 정보를 유지하세요.
+6. 만약 새로운 정보가 없다면 [현재 사용자 정보] 부분의 내용을 그대로 출력하세요.
+7. 기존 정보를 유지할경우 [현재 사용자 정보] 부분의 내용을 그대로 출력하세요.
+
+기억하세요: 사용자가 직접적으로 언급한 사실적인 정보만 포함해야 합니다. 추측이나 추론을 하지 마세요.
+
+아래의 채팅 기록을 바탕으로 사용자 정보를 업데이트하세요:
+
+출력 양식은 반드시 아래를 따르세요.
+
+- 정보 종류 : 정보 내용
+- 정보 종류 : 정보 내용
+...
+"""
+        self.llm = ChatOpenAI(model="gpt-4o")
         self._set_config()
         self._build_graph()
 
@@ -193,7 +141,7 @@ class ConversationTest:
         self.graph = builder.compile(checkpointer=self.ShortTermMemory,
                                      store=self.LongTermMemory)
 
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _node_answer(self, 
                     state: MessagesState, 
                     config: RunnableConfig,
@@ -207,12 +155,13 @@ class ConversationTest:
         memory = self._get_memory(namespace=namespace, 
                                   key=key, 
                                   store=store)
-        system_message = prompt_config.answer_prompt.format(memory=memory)
+        system_message = self.answer_prompt.format(memory=memory)
         prompt = [SystemMessage(content=system_message)] + state["messages"]
+        # print(f"{PINK}\n{prompt[0].content}\n{RESET}")
         response = self.llm.invoke(prompt)
         return {"messages": response}
 
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _node_write_memory(self,
                           state: MessagesState, 
                           config: RunnableConfig, 
@@ -226,15 +175,14 @@ class ConversationTest:
         memory = self._get_memory(namespace=namespace, 
                                   key=key, 
                                   store=store)
-        system_message = prompt_config.create_memory_prompt.format(memory=memory)
+        system_message = self.create_memory_prompt.format(memory=memory)
         prompt = [SystemMessage(content=system_message)]+state["messages"]
         response = self.llm.invoke(prompt)
-        print(f"\n{PINK}삽입할 사용자 정보 :\n{response.content}\n{RESET}")
         store.put(namespace=namespace, 
                   key=key, 
                   value={"memory":response.content})
     
-    @trace_function(enable_print=True, only_func_name=True)
+    @trace_function(only_func_name=True)
     def _node_optimize_memory(self,
                               state: MessagesState):
         """
@@ -278,32 +226,12 @@ class ConversationTest:
                                     key=key)
         return existing_memory.value.get('memory') if existing_memory else ""
 
-def main(args):
-    if args.model_type == "huggingface":
-        llm_endpoint = HuggingFaceEndpoint(
-            endpoint_url=args.endpoint_url, # Endpoint 주소 (TGI 사용)
-            huggingfacehub_api_token=os.getenv("HF_API_TOKEN"), # HuggingFace API 토큰
-            max_new_tokens=4096,
-            top_k=1,
-            top_p=0.001,
-            temperature=0.001,
-            repetition_penalty=1.03,
-            stop_sequences=['<end_of_turn>','<eos>']
-        )
-        llm = ChatHuggingFace(
-            llm=llm_endpoint,
-            model_id="rtzr/ko-gemma-2-9b-it",
-            stream_mode=True
-        ).bind(max_tokens=4096)
-    else:
-        os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-        llm = ChatOpenAI(model="gpt-4o")
-    
-    tool_test(llm)
-    chat_test(llm)
+def main():
+    tool_test()
+    chat_test()
 
-def tool_test(llm):
-    tool_conversation = ToolConversation(llm)
+def tool_test():
+    tool_conversation = ToolConversation()
     print(f"{GREEN}========================================{RESET}")
     print(f"{GREEN} [Langgraph 기반 툴 테스트를 시작합니다.]{RESET}")
     print(f"{GREEN}========================================{RESET}")
@@ -318,40 +246,36 @@ def tool_test(llm):
             print(f"{BLUE}중간 결과 : {message.content}{RESET}")
     print(f"{BLUE}최종 답변 메시지 : {messages['messages'][-1].content}{RESET}\n")
     
-def chat_test(llm):
-    conversation = ConversationTest(llm)
+def chat_test():
+    conversation = ConversationTest()
     print(f"{GREEN}========================================{RESET}")
     print(f"{GREEN}[Langgraph 기반 채팅 테스트를 시작합니다.]{RESET}")
     print(f"{GREEN}========================================{RESET}")
-    messages_lst = [
-        "안녕하세요, 저는 홍길동이라고 합니다.",
-        "저는 올해 25살이고, 한국대학교에서 재학중이에요.",
-        "제 전공은 인공지능이고 요즘 LLM 분야에 관심이 많아요.",
-        "제가 제일 좋아하는 음식은 돼지고기이고, 싫어하는 음식은 딱히없어요.",
-        "저에 대해 아시는게 있나요?"
-    ]
+    messages_lst = ["안녕하세요, 저는 홍길동이라고 합니다.",
+                    "저는 올해 25살이고, 한국대학교에서 재학중이에요.",
+                    "제 전공은 인공지능이고 요즘 LLM 분야에 관심이 많아요.",
+                    "제가 제일 좋아하는 음식은 돼지고기이고, 싫어하는 음식은 딱히없어요.",
+                    "저에 대해 아시는게 있나요?"]
+
     for message in messages_lst:
-        print(f"{YELLOW}요청 메시지 : {message}{RESET}")
         convs = conversation(message)
-        print(f"{BLUE}답변 메시지 : {convs['messages'][-1].content}{RESET}")
+        print(f"\n{YELLOW}요청 메시지 : {message}{RESET}")
+        print(f"\n{BLUE}답변 메시지 : {convs['messages'][-1].content}{RESET}\n")
     print(f"{GREEN}========================================{RESET}")
     print(f"{GREEN}        [대화가 종료되었습니다.]{RESET}")
     print(f"{GREEN}========================================{RESET}")
 
-    print("사용자와의 대화로부터 추출한 정보는 다음과 같습니다.\n")
+    print(f"{RED}\n사용자와의 대화로부터 추출한 정보는 다음과 같습니다.\n{RESET}")
     namespace = ("memories", conversation.config["configurable"]["user_id"])
     key = "chat_user_memory"
     memory = conversation._get_memory(namespace=namespace, 
-                                      key=key, 
-                                      store=conversation.LongTermMemory)
-    print(memory)
+                                    key=key, 
+                                    store=conversation.LongTermMemory)
+    print(f"{RED}{memory}{RESET}")
     
-if __name__ == "__main__":    
+if __name__ == "__main__":  
+    import time  
     start_time = time.time()
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--endpoint_url", type=str, default="http://192.168.1.21:11980")
-    parser.add_argument("--model_type", type=str, default="gpt")
-    args = parser.parse_args()
-    main(args)
+    main()
     end_time = time.time()
-    print(f"\n{RED}[테스트 종료] 실행 시간: {end_time - start_time}초{RESET}")
+    print(f"\n\n{PINK}🎉 [테스트 종료] 실행 시간: {end_time - start_time}초{RESET}")

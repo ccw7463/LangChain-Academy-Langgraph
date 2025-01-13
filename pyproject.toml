@@ -28,6 +28,8 @@ langchain-openai = "^0.2.9"
 langchain-huggingface = "^0.1.2"
 torch = "^2.5.1"
 python-dotenv = "^1.0.1"
+langchain-community = "^0.3.14"
+wikipedia = "^1.4.0"
 
 
 [build-system]

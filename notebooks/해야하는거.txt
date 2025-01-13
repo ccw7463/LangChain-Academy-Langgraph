@@ -1,3 +1,0 @@
-parallel
-sub graph
-모듈6 부분

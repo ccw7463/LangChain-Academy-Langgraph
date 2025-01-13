@@ -1,4 +1,10 @@
-# Langchain
+
+# Langchain Academy - Langgraph
+
+<img src="public/langgraph_logo.png" width="270" height="250">
+
+
+
 
 ### This is repo for Studying Langchain
 
@@ -25,7 +31,3 @@ poetry install
 - 02_memory_store.ipynb : Studying Memory Store
 
     ![short_term_long_term.png](public/short_term_long_term.png)
-
-- 05_memory_agent.ipynb : Studying Memory Agent
-
-    ![memory_agent.png](public/memory_agent.png)
