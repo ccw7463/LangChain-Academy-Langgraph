@@ -1,5 +1,5 @@
 
-# Langchain Academy - Langgraph
+# Langgraph
 
 <img src="./public/langgraph.png" alt="made by DALL-E" width="600">
 
