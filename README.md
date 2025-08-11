@@ -1,9 +1,5 @@
 
 # Langgraph
-
-<img src="./public/langgraph.png" alt="made by DALL-E" width="600">
-
-
 ## 소개
 
 langchain-academy에서 제공하는 Langgraph 강의를 수강하면서 공부한 내용을 기록한 Repo 입니다.
