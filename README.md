@@ -1,7 +1,3 @@
-
-# Langgraph
-## 소개
-
 langchain-academy에서 제공하는 Langgraph 강의를 수강하면서 공부한 내용을 기록한 Repo 입니다.
 
 자세한 강의 내용은 https://academy.langchain.com/collections 에서 확인 가능합니다. 
